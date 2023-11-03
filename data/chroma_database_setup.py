@@ -22,7 +22,7 @@ print("set up open ai embedding function...")
 
 # l2 is the default
 # with cosing d = 1.0 - sum(Ai*Bi) / sqrt(sum(Ai*Ai) * sum(Bi*Bi))
-collection = chroma_client.get_or_create_collection(name="ea_metadata", embedding_function=openai_ef, metadata={"hnsw:space": "cosine"}) 
+collection = chroma_client.get_or_create_collection(name="lobbying_metadata", embedding_function=openai_ef, metadata={"hnsw:space": "cosine"}) 
 
 # if chroma is passed a list of documents, it will automatically tokenize them and embed them with 
 # the collection's embedding function, if documents are too large an exception will be raised
@@ -31,50 +31,3 @@ collection = chroma_client.get_or_create_collection(name="ea_metadata", embeddin
 # metadata provides storage for additional information and allows for filtering
 
 print("collection created...")
-
-### THE DATA PREP =====================================================
-
-# Replace 'your_file.csv' with the path to your CSV file
-df = pd.read_csv('Data/VariableMetadata2022.csv')
-
-print("starting data write...")
-
-### WRITING THE DATA ==================================================
-
-# use batches of 1000 so as not to overwhelm the OpenAI API
-batch_size = 1000
-num_batches = (len(df) + batch_size - 1) // batch_size
-
-for batch_num in range(num_batches):
-    print("on batch" + str(batch_num) + " of " + str(num_batches) + "...")
-    start_index = batch_num * batch_size
-    end_index = min((batch_num + 1) * batch_size, len(df))
-    batch = df.iloc[start_index:end_index]
-
-    documents = []
-    metadatas = []
-    ids = []
-
-    for index, row in batch.iterrows():
-        r_document = row['VARIABLEDESC']
-        r_metadata = {}
-        r_metadata['COUNTRY'] = row['COUNTRY']
-        r_metadata['DATASETNAME'] = row['DATASETNAME']
-        r_metadata['VINTAGE'] = row['VINTAGE']
-        r_metadata['VARIABLENAME'] = row['VARIABLENAME']
-        r_id = str(row['UniqueId'])
-        documents.append(r_document)
-        metadatas.append(r_metadata)
-        ids.append(r_id)
-
-    try:
-        collection.upsert(
-            documents=documents,
-            metadatas=metadatas,
-            ids=ids
-        )  
-    except:
-        print("\nError in batch: " + str(batch_num))
-        print("IDs starting at " + str(start_index) + " and ending at " + str(end_index) + "... \n")
-
-print("\n\n...done writing data!")
