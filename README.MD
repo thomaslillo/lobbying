@@ -6,6 +6,10 @@ Semantic matching is matching search queries to keywords based upon the intent o
 
 Source of the data: https://open.toronto.ca/dataset/lobbyist-registry/
 
+TO DO:
+- UI
+- dockerize pipeline
+
 ## Running ChromaDB
 
 You can run ChromaDB within a docker container by pulling the official image and running it.
